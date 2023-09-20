@@ -1,4 +1,4 @@
-//varible
+// Variable
 const audioList = [
     new Audio("audio/kuruto.mp3"),
     new Audio("audio/kuru1.mp3"),
@@ -10,94 +10,47 @@ for (const audio of audioList) {
 }
 
 let firstSquish = true;
-//end varible
 
 const getTimePassed = () => Date.parse(new Date());
 
-const globalCounter = document.querySelector('#global-counter');
 const localCounter = document.querySelector('#local-counter');
-let globalCount = 0;
 let localCount = localStorage.getItem('count-v2') || 0;
-// stores counts from clicks until 5 seconds have passed without a click
 let heldCount = 0;
 
-function getGlobalCount() {
-    fetch('https://kuru-kuru-count-api.onrender.com/sync', { method: 'GET'})
-        .then((response) => response.json())
-        .then((data) => {
-            globalCount = data.count;
-            // animate counter starting from current value to the updated value
-            const startingCount = parseInt(globalCounter.textContent.replace(/,/g, ''));
-            (animateCounter = () => {
-                const currentCount = parseInt(globalCounter.textContent.replace(/,/g, ''));
-                const time = (globalCount - startingCount) / 200; // speed
-                if (currentCount < globalCount) {
-                    globalCounter.textContent = Math.ceil(currentCount + time).toLocaleString('en-US');
-                    setTimeout(animateCounter, 1);
-                } else {
-                    globalCounter.textContent = globalCount.toLocaleString('en-US');
-                }
-            })()
-        })
-        .catch((err) => console.error(err));
-}
-// initialize counters
-localCounter.textContent = localCount.toLocaleString('en-US');
-getGlobalCount();
-
-let prevTime = 0;
-// update global count every 10 seconds when tab is visible
-setInterval(() => {
-    if (document.hasFocus() && getTimePassed() - prevTime > 10000) {
-        getGlobalCount();
-        prevTime = getTimePassed();
-    }
-}, 10000);
-
-function update(e, resetCount=true) {
-    // update global count
+function update(e, resetCount = true) {
     const data = {
         count: heldCount,
         e: e // check if request is triggered by event
     };
 
-    fetch('https://kuru-kuru-count-api.onrender.com/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-        .then(() => {
-            // update local count
-            localStorage.setItem('count-v2', localCount);
-            if (resetCount) heldCount = 0;
-        })
-        .catch((err) => console.error(err));
+    // Update local count
+    localCount += heldCount;
+    localCounter.textContent = localCount.toLocaleString('en-US');
+
+    if (resetCount) heldCount = 0;
+    localStorage.setItem('count-v2', localCount);
 }
 
 let timer;
-//counter button
+
+// Counter button
 const counterButton = document.querySelector('#counter-button');
-counterButton.addEventListener('click', (e) => {
+counterButton.addEventListener('click', (e) => {    
     prevTime = getTimePassed();
 
     heldCount++;
-    localCount++;
-    globalCount++;
+    localCount++; // Update local count
+    localCounter.textContent = localCount.toLocaleString('en-US'); // Update local counter
 
     if (heldCount === 10) {
-        // update on 10 counts
+        // Update on 10 counts
         update(e, false);
         heldCount -= 10;
     } else {
-        // update 5 seconds after last click
+        // Update 5 seconds after the last click
         clearTimeout(timer);
         timer = setTimeout(() => update(e), 5000);
     }
-
-    localCounter.textContent = localCount.toLocaleString('en-US');
-    globalCounter.textContent = globalCount.toLocaleString('en-US');
 
     triggerRipple(e);
 
@@ -167,4 +120,3 @@ function triggerRipple(e) {
         ripple.remove();
     }, 300);
 }
-//end counter button
