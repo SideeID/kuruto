@@ -1,4 +1,3 @@
-// Variable
 const audioList = [
     new Audio("audio/kuruto.mp3"),
     new Audio("audio/kuru1.mp3"),
@@ -8,55 +7,8 @@ const audioList = [
 for (const audio of audioList) {
     audio.preload = "auto";
 }
-
+  
 let firstSquish = true;
-
-const getTimePassed = () => Date.parse(new Date());
-
-const localCounter = document.querySelector('#local-counter');
-let localCount = localStorage.getItem('count-v2') || 0;
-let heldCount = 0;
-
-function update(e, resetCount = true) {
-    const data = {
-        count: heldCount,
-        e: e // check if request is triggered by event
-    };
-
-    // Update local count
-    localCount += heldCount;
-    localCounter.textContent = localCount.toLocaleString('en-US');
-
-    if (resetCount) heldCount = 0;
-    localStorage.setItem('count-v2', localCount);
-}
-
-let timer;
-
-// Counter button
-const counterButton = document.querySelector('#counter-button');
-counterButton.addEventListener('click', (e) => {    
-    prevTime = getTimePassed();
-
-    heldCount++;
-    localCount++; // Update local count
-    localCounter.textContent = localCount.toLocaleString('en-US'); // Update local counter
-
-    if (heldCount === 10) {
-        // Update on 10 counts
-        update(e, false);
-        heldCount -= 10;
-    } else {
-        // Update 5 seconds after the last click
-        clearTimeout(timer);
-        timer = setTimeout(() => update(e), 5000);
-    }
-
-    triggerRipple(e);
-
-    playKuru();
-    animateHerta();
-});
 
 function playKuru() {
     let audio;
@@ -102,21 +54,42 @@ function animateHerta() {
     }, 12);
 }
 
-function triggerRipple(e) {
-    let ripple = document.createElement("span");
-        
-    ripple.classList.add("ripple");
+const messages = [
+    "The kuru~ has been squished",
+    "kuru~kuru~to ><",
+];
 
-    const counter_button = document.getElementById("counter-button");
-    counter_button.appendChild(ripple);
+const messageElement = document.querySelector("#content h3");
 
-    let x = e.clientX - e.target.offsetLeft;
-    let y = e.clientY - e.target.offsetTop;
-
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-
-    setTimeout(() => {
-        ripple.remove();
-    }, 300);
+function changeMessage() {
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    const randomMessage = messages[randomIndex];
+    messageElement.textContent = randomMessage;
 }
+
+function handleSpacebarPress(event) {
+    if (event.key === " " || event.key === "Spacebar") {
+        simulateButtonClick();
+    }
+}
+
+function simulateButtonClick() {
+    const clickEvent = new MouseEvent("click", {
+    });
+    counterButton.dispatchEvent(clickEvent);
+}
+
+document.addEventListener("keydown", handleSpacebarPress);
+const counterButton = document.getElementById("counter-button");
+const localCounter = document.getElementById("local-counter");
+let count = parseInt(localStorage.getItem("counter")) || 0;
+localCounter.textContent = count;
+
+counterButton.addEventListener("click", () => {
+    count++;
+    localStorage.setItem("counter", count);
+    localCounter.textContent = count;
+    playKuru();
+    animateHerta();
+    changeMessage();
+});
